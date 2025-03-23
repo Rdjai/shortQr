@@ -72,10 +72,10 @@ class _SplashScreenState extends State<SplashScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
-    if (token != null && token.isNotEmpty) {
-      Navigator.pushReplacementNamed(context, "/");
-    } else {
+    if (token!.isEmpty) {
       Navigator.pushReplacementNamed(context, "/login");
+    } else {
+      Navigator.pushReplacementNamed(context, "/");
     }
   }
 }
