@@ -4,7 +4,7 @@ const route = express.Router();
 
 const { HandleRestricUser } = require("../middlewere/auth.middlewere")
 const { registerHandler, loginHandler, profileHandle } = require("../controller/user.constroller")
-const { shortUrlHandler, redirectHandler, myurlsHandler, constumShortUriHandler, visitehistoryHandle, deleteUriHandler } = require("../controller/url.controller")
+const { shortUrlHandler, redirectHandler, myurlsHandler, constumShortUriHandler, visitehistoryHandle, deleteUriHandler, qrCodeGeneratorHandle } = require("../controller/url.controller")
 
 
 //user routes
@@ -20,6 +20,7 @@ route.post("/delete", HandleRestricUser, deleteUriHandler)
 route.get("/details/:shortId", redirectHandler);
 route.get("/my-url", HandleRestricUser, myurlsHandler);
 route.get("/analytics/visitors", HandleRestricUser, visitehistoryHandle)
+route.post("/Qr/view", HandleRestricUser, qrCodeGeneratorHandle)
 
 // route.put("/update/:shortId", HandleRestricUser, )
 

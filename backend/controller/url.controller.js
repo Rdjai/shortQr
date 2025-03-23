@@ -1,4 +1,6 @@
 const express = require("express");
+const QRCode = require('qrcode')
+
 const shortid = require("shortid");
 const UrlModel = require("../model/url.model");
 const urlModel = require("../model/url.model");
@@ -35,11 +37,19 @@ const shortUrlHandler = async (req, res) => {
         });
 
         await newUrl.save();
-        res.status(200).json({
-            status: true,
-            message: "URL shortened successfully",
-            shortUri: `${req.protocol}://${req.get("host")}/api/v1/${shortId}`
-        });
+        const qrCodeUri = `${req.protocol}://${req.get("host")}/api/v1/${shortId}`
+        QRCode.toDataURL(qrCodeUri, function (err, qrCode) {
+            if (err) {
+                return res.status(500).json({ error: "Failed to generate QR code" });
+            }
+            res.status(200).json({
+                status: true,
+                message: "URL shortened successfully",
+                shortUri: `${req.protocol}://${req.get("host")}/api/v1/${shortId}`,
+                qrCode
+            });
+        })
+
 
     } catch (error) {
         console.error("Error in shortUrlHandler:", error);
@@ -189,6 +199,39 @@ async function deleteUriHandler(req, res) {
     }
 }
 
+//qr code generator
+
+const qrCodeGeneratorHandle = async (req, res) => {
+    console.log(req.body.shortId);
+    try {
+        const { shortId } = req.body;
+        if (!shortId) return res.status(400).json({
+            error: "url not exits"
+        })
+        const uri = await urlModel.find({
+            shortId: shortId
+        })
+        if (uri === null) return res.status(400).json({
+            error: "url not exits"
+        })
+        QRCode.toDataURL(uri, function (err, qrCode) {
+            if (err) {
+                return res.status(500).json({ error: "Failed to generate QR code" });
+            }
+            res.status(200).json({
+                status: true,
+                message: "URL Qr code successfully",
+                shortUri: `${req.protocol}://${req.get("host")}/api/v1/${shortId}`,
+                qrCode
+            });
+        })
+
+    } catch (error) {
+        console.error("Error during URL redirection:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
 // async function uriUpdateHandler(req, res) {
 //     const { shortId, Alias, originalUrl } = req.body;
 //     const data = Alias.split(" ").join("_")
@@ -228,5 +271,6 @@ module.exports = {
     myurlsHandler,
     visitehistoryHandle,
     constumShortUriHandler,
-    deleteUriHandler
+    deleteUriHandler,
+    qrCodeGeneratorHandle
 }
