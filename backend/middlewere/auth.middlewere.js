@@ -9,8 +9,6 @@ const HandleRestricUser = async (req, res, next) => {
             error: "please login and try again",
         })
         const id = getUser(userId);
-
-
         const decodeAuth = await userModel.findOne({
             "email": id.email
         });

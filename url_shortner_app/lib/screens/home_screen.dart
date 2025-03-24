@@ -89,6 +89,18 @@ class _HomeScreenState extends State<HomeScreen> {
           //   });
           // },
         ),
+        floatingActionButton: ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryColor,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(50),
+            ),
+          ),
+          onPressed: () {},
+          child: Text("+", style: GoogleFonts.hammersmithOne(fontSize: 20)),
+        ),
       ),
     );
   }

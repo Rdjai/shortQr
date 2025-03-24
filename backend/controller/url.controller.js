@@ -108,15 +108,22 @@ const redirectHandler = async (req, res) => {
 
 
 const visitehistoryHandle = async (req, res) => {
-    const shortid = req.body;
-    const data = await UrlModel.findOne(shortid);
-    if (!data) return res.status(400).json({
-        error: "url not exits"
-    })
-    return res.status(200).json({
-        view: data.visitehistory.length,
-        analytics: data.visitehistory
-    })
+    try {
+        const shortid = req.body;
+        console.log(shortid.shortid);
+
+        const data = await UrlModel.findOne(shortid);
+        if (data === null) return res.status(400).json({
+            error: "url not exits"
+        })
+        return res.status(200).json({
+            view: data.visitehistory.length,
+            analytics: data.visitehistory
+        })
+    } catch (error) {
+        console.error("Error during URL redirection:", error);
+        res.status(500).json({ error: "Internal server error" });
+    }
 }
 
 
@@ -202,7 +209,7 @@ async function deleteUriHandler(req, res) {
 //qr code generator
 
 const qrCodeGeneratorHandle = async (req, res) => {
-    console.log(req.body.shortId);
+
     try {
         const { shortId } = req.body;
         if (!shortId) return res.status(400).json({
@@ -211,10 +218,14 @@ const qrCodeGeneratorHandle = async (req, res) => {
         const uri = await urlModel.find({
             shortId: shortId
         })
+        console.log("uri for qr", uri);
+        const data = uri[0].originalUrl;
+        console.log("originalUrl for qr", data);
         if (uri === null) return res.status(400).json({
             error: "url not exits"
         })
-        QRCode.toDataURL(uri, function (err, qrCode) {
+
+        QRCode.toDataURL(data, function (err, qrCode) {
             if (err) {
                 return res.status(500).json({ error: "Failed to generate QR code" });
             }
