@@ -6,7 +6,7 @@ const UrlModel = require("../model/url.model");
 const urlModel = require("../model/url.model");
 
 const shortUrlHandler = async (req, res) => {
-    const { originalUrl } = req.body;
+    const { title, originalUrl } = req.body;
 
     console.log("Received URL:", originalUrl);
 
@@ -64,10 +64,12 @@ const shortUrlHandler = async (req, res) => {
 const myurlsHandler = async (req, res) => {
     try {
         const userId = req.user._id;
+
         if (!userId) {
             return res.status(400).json({ status: false, msg: "User ID is required" });
         }
         const data = await UrlModel.find({ createdBy: userId });
+        console.log(data);
         if (!data || data.length === 0) {
             return res.status(404).json({ status: false, msg: "No URLs found" });
         }
@@ -110,9 +112,12 @@ const redirectHandler = async (req, res) => {
 const visitehistoryHandle = async (req, res) => {
     try {
         const shortid = req.body;
-        console.log(shortid.shortid);
-
-        const data = await UrlModel.findOne(shortid);
+        console.log("here is the id ", shortid.shortid);
+        const ShortId = shortid.shortid;
+        const data = await UrlModel.findOne({
+            shortId: ShortId
+        });
+        console.log(data);
         if (data === null) return res.status(400).json({
             error: "url not exits"
         })
@@ -129,15 +134,21 @@ const visitehistoryHandle = async (req, res) => {
 
 //costum short uri
 async function constumShortUriHandler(req, res) {
-    const { originalUrl, costum_uri } = req.body;
+    const { title, originalUrl, costum_uri } = req.body;
     try {
-        if (!originalUrl && !costum_uri) {
-            if (!originalUrl) return res.status(201).json({
+        if (!originalUrl && !costum_uri && !title) {
+            if (!originalUrl) return res.status(400).json({
                 status: false,
                 error: "please add Url you want to short",
             })
+            else if (!title) {
+                if (!title) return res.status(400).json({
+                    status: false,
+                    error: "please add Url you want to short",
+                })
+            }
             else {
-                return res.status(201).json({
+                return res.status(400).json({
                     status: false,
                     error: "please add Alias you want to short",
                 })
@@ -153,6 +164,7 @@ async function constumShortUriHandler(req, res) {
         console.log("here is the alias ", alias);
         if (alias === null) {
             const newUrl = new UrlModel({
+                title,
                 originalUrl,
                 shortId,
                 createdBy: req.user._id
@@ -169,7 +181,7 @@ async function constumShortUriHandler(req, res) {
         res.status(200).json({
             status: true,
             message: "URL shortened successfully",
-            shortUri: `${req.protocol}://${req.get("host")}/api/v1/${shortId}`
+            shortUri: `${req.protocol}://${req.get("host")}/api/details/${shortId}`
         });
     } catch (error) {
         console.error("Error during URL redirection:", error);

@@ -21,6 +21,7 @@ const registerHandler = async (req, res) => {
 const loginHandler = async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log(req.body);
         const userdata = await User.findOne({ email });
         if (userdata && userdata.password === password) {
             const sesstionId = setUser(userdata.email, userdata.password);

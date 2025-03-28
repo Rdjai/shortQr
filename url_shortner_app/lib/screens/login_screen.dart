@@ -145,12 +145,12 @@ class _loginScreenState extends State<loginScreen> {
   ) async {
     try {
       final response = await http.post(
-        Uri.parse("http://192.168.1.24:3000/api/login"),
+        Uri.parse("http://192.168.1.14:3000/api/login"),
         body: {"email": userEmail, "password": pass},
       );
+      print("${userEmail} and pass ${response.body}");
 
       if (response.statusCode == 200) {
-        debugPrint("${response.body}");
         final Map<String, dynamic> userData = json.decode(response.body);
         final LoginResponse loginResponse = LoginResponse.fromJson(userData);
         SharedPreferences prefs = await SharedPreferences.getInstance();

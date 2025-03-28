@@ -1,11 +1,14 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icons.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_shortner_app/model/myuri.model.dart';
 import 'package:url_shortner_app/utils/app_colors.dart';
-import 'package:url_shortner_app/widgets/custom_button_widget.dart';
-import 'package:url_shortner_app/widgets/custom_input_field.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:url_shortner_app/widgets/short_uri_widget.dart';
+
+import 'package:http/http.dart' as http;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +19,15 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController shortQrController = TextEditingController();
+
+  bool isLoading = true;
+  List<MyUri> urlList = [];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchUrls();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,40 +44,22 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
         ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.all(15.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Enter Url or Text",
-                style: GoogleFonts.hammersmithOne(fontSize: 20),
-              ),
-              CustomInputField(
-                lebel: "https://yesdomain.io",
-                hint: "https://yesdomain.io",
-                controller: shortQrController,
-                keyboardtype: TextInputType.text,
-                obsecureText: false,
-              ),
-              SizedBox(height: 25),
-              CustomButtonWidget(
-                btnName: "Generate",
-                func: () => print("Generate QR Code"),
-                clr: AppColors.primaryColor,
-              ),
-              SizedBox(height: 25),
-              CustomButtonWidget(
-                btnName: "Shorten URL",
-                func: () => print("Generate QR Code"),
-                clr: AppColors.primaryColor,
-              ),
-              SizedBox(height: 25),
-              ShortUriWidget(),
-            ],
-          ),
-        ),
+        body:
+            isLoading
+                ? Center(child: CircularProgressIndicator())
+                : urlList.isEmpty
+                ? Center(child: Text("No URLs found"))
+                : ListView.builder(
+                  itemCount: urlList.length,
+                  itemBuilder: (context, index) {
+                    var item = urlList[index];
+                    return ListTile(
+                      title: Text(item.title ?? "No Title"),
+                      subtitle: Text(item.shortId ?? "Id Not find"),
+                    );
+                  },
+                ),
+
         bottomNavigationBar: GNav(
           rippleColor: Colors.grey[300]!,
           hoverColor: Colors.grey[100]!,
@@ -103,5 +97,45 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
     );
+  }
+
+  Future<List<MyUri>> fetchUrls() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      final res = await http.get(
+        Uri.parse("http://192.168.1.14:3000/api/my-url"),
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer $token",
+        },
+      );
+
+      if (res.statusCode == 200) {
+        print("Data: ${res.body}");
+
+        final Map<String, dynamic> data = json.decode(res.body);
+        List<dynamic> urlData = data['data']; // Assuming 'data' contains a list
+
+        List<MyUri> myUris =
+            urlData.map((item) => MyUri.fromJson(item)).toList();
+
+        setState(() {
+          urlList = myUris;
+          isLoading = false;
+        });
+
+        return myUris;
+      } else {
+        print("Error: ${res.body}");
+        setState(() => isLoading = false);
+        return [];
+      }
+    } catch (e) {
+      print("Exception: $e");
+      setState(() => isLoading = false);
+      return [];
+    }
   }
 }
