@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:awesome_dialog/awesome_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:line_icons/line_icons.dart';
@@ -9,6 +10,8 @@ import 'package:url_shortner_app/utils/app_colors.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
 
 import 'package:http/http.dart' as http;
+import 'package:url_shortner_app/widgets/custom_button_widget.dart';
+import 'package:url_shortner_app/widgets/custom_input_field.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -18,7 +21,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final TextEditingController shortQrController = TextEditingController();
+  final TextEditingController titleAlias = TextEditingController();
+  final TextEditingController originalUri = TextEditingController();
+  final TextEditingController costumUri = TextEditingController();
 
   bool isLoading = true;
   List<MyUri> urlList = [];
@@ -92,7 +97,58 @@ class _HomeScreenState extends State<HomeScreen> {
               borderRadius: BorderRadius.circular(50),
             ),
           ),
-          onPressed: () {},
+          onPressed: () {
+            AwesomeDialog(
+              context: context,
+              dialogType: DialogType.question,
+              animType: AnimType.bottomSlide,
+              width: 400,
+              body: Column(
+                children: [
+                  Text("Enter data"),
+                  CustomInputField(
+                    lebel: "title",
+                    hint: "Alias",
+                    controller: titleAlias,
+                    keyboardtype: TextInputType.text,
+                    obsecureText: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "Password cannot be empty";
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 5),
+                  CustomInputField(
+                    lebel: "Url",
+                    hint: "past link",
+                    controller: titleAlias,
+                    keyboardtype: TextInputType.text,
+                    obsecureText: false,
+                    validator: (value) {
+                      if (value == null || value.isEmpty)
+                        return "link cannot be empty";
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 5),
+                  CustomInputField(
+                    lebel: "Custom permalink ",
+                    hint: "permalink",
+                    controller: titleAlias,
+                    keyboardtype: TextInputType.text,
+                    obsecureText: false,
+                  ),
+                  CustomButtonWidget(
+                    btnName: "Short link",
+                    func: () {},
+                    clr: AppColors.primaryColor,
+                  ),
+                  SizedBox(height: 12),
+                ],
+              ),
+            ).show();
+          },
           child: Text("+", style: GoogleFonts.hammersmithOne(fontSize: 20)),
         ),
       ),
